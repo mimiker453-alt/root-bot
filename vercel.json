@@ -1,17 +1,10 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "api/bot.js",
-      "use": "@vercel/node"
+  "functions": {
+    "api/bot.js": {
+      "maxDuration": 50
     }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "api/bot.js"
-    }
-  ],
+  },
   "crons": [
     {
       "path": "/api/bot",
