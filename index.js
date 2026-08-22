@@ -11,7 +11,7 @@ const bot = mineflayer.createBot({
   host: process.env.SERVER_IP || 'IP_СЕРВЕРА', 
   port: parseInt(process.env.SERVER_PORT) || 25565,       
   username: process.env.BOT_NAME || 'Public_AFK_Bot',
-  version: false // Автоопределение версии сервера
+  version: '1.21.11' // Автоопределение версии сервера
 });
 
 const getRandom = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
