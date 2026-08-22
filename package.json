@@ -1,0 +1,11 @@
+{
+  "name": "minecraft-root-bot",
+  "version": "1.0.0",
+  "description": "AI Serverless Bot for VanillaBox",
+  "main": "api/bot.js",
+  "dependencies": {
+    "mineflayer": "^4.21.0",
+    "groq-sdk": "^0.12.0",
+    "axios": "^1.7.9"
+  }
+}
