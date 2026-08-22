@@ -2,21 +2,20 @@ const mineflayer = require('mineflayer');
 const express = require('express');
 const app = express();
 
-// 1. Запуск веб-сервера для удержания онлайна 24/7
-app.get('/', (req, res) => res.send('Бот работает без остановки!'));
-app.listen(process.env.PORT || 3000, () => console.log('[СИСТЕМА] Веб-сервер успешно запущен'));
+app.get('/', (req, res) => res.send('Бот активен'));
+app.listen(process.env.PORT || 3000);
 
-// 2. Инициализация подключения бота к Майнкрафту
 const bot = mineflayer.createBot({
-  host: process.env.SERVER_IP || 'IP_СЕРВЕРА', 
-  port: parseInt(process.env.SERVER_PORT) || 25565,       
-  username: process.env.BOT_NAME || 'Public_AFK_Bot',
-  version: '1.21.11' // Автоопределение версии сервера
+  host: 'tc.vanilla-box.ru', 
+  port: 25565,       
+  username: 'root',
+  version: '1.21.1',
+  auth: 'offline'
 });
 
 const getRandom = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
-// 3. Функция случайных микродвижений против Анти-АФК
+// Функция микродвижений (Анти-АФК)
 function performMicroMovements() {
   if (!bot.entity) return;
   const actions = ['forward', 'back', 'left', 'right', 'jump'];
@@ -32,37 +31,38 @@ function performMicroMovements() {
   setTimeout(performMicroMovements, getRandom(15000, 45000));
 }
 
-// 4. Логика при успешном заходе на сервер
-bot.on('spawn', () => {
-  console.log(`[СИСТЕМА] Бот ${bot.username} успешно зашел на сервер Майнкрафт!`);
-  
-  // Автоматический ввод пароля (если на сервере нужна авторизация)
-  if (process.env.BOT_PASSWORD) {
+// УМНАЯ АВТОРИЗАЦИЯ: бот слушает чат комнаты авторизации
+bot.on('message', (jsonMsg) => {
+  const message = jsonMsg.toString();
+  console.log(`[СЕРВЕР]: ${message}`);
+
+  // Если сервер просит войти (/login) или зарегистрироваться (/register)
+  if (message.includes('/login') || message.includes('войти') || message.includes('Авторизуйтесь')) {
     setTimeout(() => {
-      bot.chat(`/login ${process.env.BOT_PASSWORD}`);
-      bot.chat(`/reg ${process.env.BOT_PASSWORD} ${process.env.BOT_PASSWORD}`);
-    }, 3000);
+      bot.chat('/login 311986511');
+      console.log('[СИСТЕМА] Отправлен пароль авторизации!');
+    }, 1000); // Микро-пауза 1 секунда, чтобы сервер успел принять команду
   }
-  // Запуск постоянных шевелений через 5 секунд
-  setTimeout(performMicroMovements, 5000);
 });
 
-// 5. Управление командами от ЛЮБОГО игрока на сервере
+bot.on('spawn', () => {
+  console.log(`[СИСТЕМА] Бот ${bot.username} подключился к сети!`);
+  // Включаем микродвижения только через 7 секунд (после успешного логина)
+  setTimeout(performMicroMovements, 7000);
+});
+
+// Управление от других игроков через ЛС
 bot.on('whisper', (username, message) => {
   if (message.startsWith('!cmd ')) {
     const command = message.replace('!cmd ', '');
-    bot.chat(command); // Бот вводит команду на сервере
+    bot.chat(command); 
     bot.whisper(username, `Выполнено: ${command}`);
   }
 });
 
-// Вывод всего чата сервера в логи Render
-bot.on('chat', (username, message) => console.log(`[ЧАТ] <${username}> ${message}`));
-bot.on('kick', (reason) => console.log(`[КИК] Бот был отключен: ${reason}`));
-bot.on('error', (err) => console.log(`[ОШИБКА] Произошел сбой: ${err}`));
-
-// Автоматический перезаход, если сервер упал или перезагрузился
+bot.on('kick', (reason) => console.log(`[КИК] Отключен: ${reason}`));
+bot.on('error', (err) => console.log(`[ОШИБКА] Сбой: ${err}`));
 bot.on('end', () => {
-  console.log('[СИСТЕМА] Соединение потеряно. Перезапуск процесса через 15 секунд...');
+  console.log('[СИСТЕМА] Переподключение через 15 секунд...');
   setTimeout(() => process.exit(1), 15000); 
 });
